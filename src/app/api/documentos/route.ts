@@ -9,6 +9,8 @@ const CreateSchema = z.object({
   assunto: z.string().min(3),
   destinatario: z.string().optional(),
   corpoHtml: z.string().min(3),
+  assinaturaNome: z.string().optional(),
+  assinaturaCargo: z.string().optional(),
 });
 
 export async function GET() {
@@ -51,6 +53,8 @@ export async function POST(req: Request) {
       assunto: data.assunto,
       destinatario: data.destinatario,
       corpoHtml: data.corpoHtml,
+      assinaturaNome: data.assinaturaNome,
+      assinaturaCargo: data.assinaturaCargo,
       status: "RASCUNHO",
     },
   });

@@ -107,6 +107,9 @@ model Document {
   corpoHtml    String
   anexosJson   Json?
 
+  assinaturaNome  String?
+  assinaturaCargo String?
+
   templateId String?
   template   Template? @relation(fields: [templateId], references: [id])
 
