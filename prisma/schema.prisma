@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  GESTOR_SETOR
+  USUARIO
+}
+
+enum DocumentType {
+  OFICIO
+  CI
+  DECLARACAO
+}
+
+enum DocumentStatus {
+  RASCUNHO
+  FINALIZADO
+  CANCELADO
+}
+
+model User {
+  id       String  @id @default(cuid())
+  name     String?
+  email    String  @unique
+  password String
+
+  role Role @default(USUARIO)
+
+  setorId String?
+  setor   Setor?  @relation(fields: [setorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[] @relation("AuthorDocuments")
+  logs      AuditLog[]
+}
+
+model Setor {
+  id    String  @id @default(cuid())
+  nome  String
+  sigla String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  modelos    Template[]
+  sequencias Sequence[]
+  documents  Document[]
+}
+
+model Template {
+  id      String @id @default(cuid())
+  setorId String
+  setor   Setor  @relation(fields: [setorId], references: [id])
+
+  tipo         DocumentType
+  nome         String
+  conteudoHtml String
+  isAtivo      Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+
+  @@index([setorId, tipo])
+}
+
+model Sequence {
+  id      String @id @default(cuid())
+  setorId String
+  setor   Setor  @relation(fields: [setorId], references: [id])
+
+  tipo DocumentType
+  ano  Int
+
+  atual   Int @default(0)
+  proximo Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([setorId, tipo, ano])
+}
+
+model Document {
+  id      String @id @default(cuid())
+  setorId String
+  setor   Setor  @relation(fields: [setorId], references: [id])
+
+  tipo   DocumentType
+  status DocumentStatus @default(RASCUNHO)
+
+  numero String?
+  ano    Int
+
+  assunto      String
+  destinatario String?
+  corpoHtml    String
+  anexosJson   Json?
+
+  templateId String?
+  template   Template? @relation(fields: [templateId], references: [id])
+
+  autorId String
+  autor   User   @relation("AuthorDocuments", fields: [autorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs AuditLog[]
+
+  @@index([setorId, tipo, status, ano])
+  @@index([numero])
+}
+
+model AuditLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  action   String
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([userId])
+}
