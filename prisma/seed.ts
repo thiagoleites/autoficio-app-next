@@ -1,8 +1,9 @@
-import { PrismaClient, Role, DocumentType } from "@prisma/client";
+import { Role, DocumentType } from "@prisma/client";
+import { prisma } from "../lib/db";
 
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 async function main() {
     const senhaAdmin = await bcrypt.hash("admin@123", 10);
