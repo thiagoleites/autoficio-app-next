@@ -1,12 +1,12 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "./db";
+import { prisma } from "@/lib/db";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credenciais",
       credentials: {
         email: { label: "Email", type: "text" },
@@ -26,6 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
+          // se você já tipou next-auth.d.ts, dá pra incluir role/setorId depois via callbacks/jwt
           role: user.role,
           setorId: user.setorId,
         } as any;
@@ -41,10 +42,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      (session as any).role = token.role;
-      (session as any).setorId = token.setorId;
       (session.user as any).id = token.sub;
+      (session.user as any).role = token.role;
+      (session.user as any).setorId = token.setorId;
       return session;
     },
   },
-});
+};
